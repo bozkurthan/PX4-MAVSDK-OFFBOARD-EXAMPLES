@@ -19,7 +19,7 @@ add_executable(keyboard_offboard_control
     keyboard_offboard_control.cpp
 )
 
-target_link_libraries(offboard
+target_link_libraries(keyboard_offboard_control
     MAVSDK::mavsdk_action
     MAVSDK::mavsdk_offboard
     MAVSDK::mavsdk_telemetry
