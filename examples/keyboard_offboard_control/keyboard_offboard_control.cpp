@@ -1,10 +1,9 @@
 /**
- * @file offboard_velocity.cpp
- * @brief Example that demonstrates offboard velocity control in local NED and body coordinates
+ * @file keyboard_offboard_control.cpp
+ * @brief Example that demonstrates offboard control with keyboard by using body frame
  *
- * @authors Author: Julian Oes <julian@oes.ch>,
- *                  Shakthi Prashanth <shakthi.prashanth.m@intel.com>
- * @date 2017-10-17
+ * @authors Author: Burak Han Corak <burakhancorak@gmail.com>,
+ * @date 2019-07-29
  */
 
 #include <chrono>
@@ -70,144 +69,6 @@ inline void offboard_log(const std::string& offb_mode, const std::string msg)
     std::cout << "[" << offb_mode << "] " << msg << std::endl;
 }
 
-/**
- * Does Offboard control using NED co-ordinates.
- *
- * returns true if everything went well in Offboard control, exits with a log otherwise.
- */
-bool offb_ctrl_ned(std::shared_ptr<mavsdk::Offboard> offboard)
-{
-    const std::string offb_mode = "NED";
-    // Send it once before starting offboard, otherwise it will be rejected.
-    offboard->set_velocity_ned({0.0f, 0.0f, 0.0f, 0.0f});
-
-    Offboard::Result offboard_result = offboard->start();
-    offboard_error_exit(offboard_result, "Offboard start failed");
-    offboard_log(offb_mode, "Offboard started");
-
-    offboard_log(offb_mode, "Turn to face East");
-    offboard->set_velocity_ned({0.0f, 0.0f, 0.0f, 90.0f});
-    sleep_for(seconds(1)); // Let yaw settle.
-
-    {
-        const float step_size = 0.01f;
-        const float one_cycle = 2.0f * (float)M_PI;
-        const unsigned steps = 2 * unsigned(one_cycle / step_size);
-
-        offboard_log(offb_mode, "Go North and back South");
-        for (unsigned i = 0; i < steps; ++i) {
-            float vx = 5.0f * sinf(i * step_size);
-            offboard->set_velocity_ned({vx, 0.0f, 0.0f, 90.0f});
-            sleep_for(milliseconds(10));
-        }
-    }
-
-    offboard_log(offb_mode, "Turn to face West");
-    offboard->set_velocity_ned({0.0f, 0.0f, 0.0f, 270.0f});
-    sleep_for(seconds(2));
-
-    offboard_log(offb_mode, "Go up 2 m/s, turn to face South");
-    offboard->set_velocity_ned({0.0f, 0.0f, -2.0f, 180.0f});
-    sleep_for(seconds(4));
-
-    offboard_log(offb_mode, "Go down 1 m/s, turn to face North");
-    offboard->set_velocity_ned({0.0f, 0.0f, 1.0f, 0.0f});
-    sleep_for(seconds(4));
-
-    // Now, stop offboard mode.
-    offboard_result = offboard->stop();
-    offboard_error_exit(offboard_result, "Offboard stop failed: ");
-    offboard_log(offb_mode, "Offboard stopped");
-
-    return true;
-}
-
-/**
- * Does Offboard control using body co-ordinates.
- *
- * returns true if everything went well in Offboard control, exits with a log otherwise.
- */
-bool offb_ctrl_body(std::shared_ptr<mavsdk::Offboard> offboard)
-{
-    const std::string offb_mode = "BODY";
-
-    // Send it once before starting offboard, otherwise it will be rejected.
-    offboard->set_velocity_body({0.0f, 0.0f, 0.0f, 0.0f});
-
-    Offboard::Result offboard_result = offboard->start();
-    offboard_error_exit(offboard_result, "Offboard start failed: ");
-    offboard_log(offb_mode, "Offboard started");
-
-    offboard_log(offb_mode, "Turn clock-wise and climb");
-    offboard->set_velocity_body({0.0f, 0.0f, -1.0f, 60.0f});
-    sleep_for(seconds(5));
-
-    offboard_log(offb_mode, "Turn back anti-clockwise");
-    offboard->set_velocity_body({0.0f, 0.0f, 0.0f, -60.0f});
-    sleep_for(seconds(5));
-
-    offboard_log(offb_mode, "Wait for a bit");
-    offboard->set_velocity_body({0.0f, 0.0f, 0.0f, 0.0f});
-    sleep_for(seconds(2));
-
-    offboard_log(offb_mode, "Fly a circle");
-    offboard->set_velocity_body({5.0f, 0.0f, 0.0f, 30.0f});
-    sleep_for(seconds(15));
-
-    offboard_log(offb_mode, "Wait for a bit");
-    offboard->set_velocity_body({0.0f, 0.0f, 0.0f, 0.0f});
-    sleep_for(seconds(5));
-
-    offboard_log(offb_mode, "Fly a circle sideways");
-    offboard->set_velocity_body({0.0f, -5.0f, 0.0f, 30.0f});
-    sleep_for(seconds(15));
-
-    offboard_log(offb_mode, "Wait for a bit");
-    offboard->set_velocity_body({0.0f, 0.0f, 0.0f, 0.0f});
-    sleep_for(seconds(8));
-
-    offboard_result = offboard->stop();
-    offboard_error_exit(offboard_result, "Offboard stop failed: ");
-    offboard_log(offb_mode, "Offboard stopped");
-
-    return true;
-}
-
-/**
- * Does Offboard control using attitude commands.
- *
- * returns true if everything went well in Offboard control, exits with a log otherwise.
- */
-bool offb_ctrl_attitude(std::shared_ptr<mavsdk::Offboard> offboard)
-{
-    const std::string offb_mode = "ATTITUDE";
-
-    // Send it once before starting offboard, otherwise it will be rejected.
-    offboard->set_attitude({30.0f, 0.0f, 0.0f, 0.6f});
-
-    Offboard::Result offboard_result = offboard->start();
-    offboard_error_exit(offboard_result, "Offboard start failed");
-    offboard_log(offb_mode, "Offboard started");
-
-    offboard_log(offb_mode, "ROLL 30");
-    offboard->set_attitude({30.0f, 0.0f, 0.0f, 0.6f});
-    sleep_for(seconds(2)); // rolling
-
-    offboard_log(offb_mode, "ROLL -30");
-    offboard->set_attitude({-30.0f, 0.0f, 0.0f, 0.6f});
-    sleep_for(seconds(2)); // Let yaw settle.
-
-    offboard_log(offb_mode, "ROLL 0");
-    offboard->set_attitude({0.0f, 0.0f, 0.0f, 0.6f});
-    sleep_for(seconds(2)); // Let yaw settle.
-
-    // Now, stop offboard mode.
-    offboard_result = offboard->stop();
-    offboard_error_exit(offboard_result, "Offboard stop failed: ");
-    offboard_log(offb_mode, "Offboard stopped");
-
-    return true;
-}
 
 void usage(std::string bin_name)
 {
