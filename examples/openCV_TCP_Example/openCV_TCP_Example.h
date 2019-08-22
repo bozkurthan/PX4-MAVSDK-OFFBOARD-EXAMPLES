@@ -42,3 +42,5 @@
 #include <fstream>
 
  struct timeval start1, end1;
+    int bytesRead = 0;
+    bool shouldexit = true;
