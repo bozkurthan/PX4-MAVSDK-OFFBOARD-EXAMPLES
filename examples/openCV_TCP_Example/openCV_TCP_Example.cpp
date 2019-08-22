@@ -166,7 +166,7 @@ int main(int argc, char** argv)
 
 
     //grab the port number
-    int port = 8080;
+    int port = 8081;
     //buffer to send and receive messages with
     char msg[1500];
      
@@ -213,128 +213,34 @@ int main(int argc, char** argv)
 
     gettimeofday(&start1, NULL);
     //also keep track of the amount of data sent as well
-    int bytesRead = 0;
-    bool shouldexit = true;
-    while(shouldexit)
-    {
-        memset(&msg, 0, sizeof(msg));//clear the buffer
-        bytesRead += recv(newSd, (char*)&msg, sizeof(msg), 0);
 
-        cout << "Client: " << msg << endl;
 
-        if(strcmp(msg,"exit") == 0)
-        {
-	    cout << "I'm out" << endl;
-	    shouldexit= false;
-            break;
-        }
+       
 
-    }
 
-    close(newSd);
-    close(serverSd);
 
    while ( !should_exit )
     {
-        fd_set set;
-        struct timeval tv;
 
-        tv.tv_sec = 0;
-        tv.tv_usec = 400000;
+	memset(&msg, 0, sizeof(msg));//clear the buffer
+	bytesRead += recv(newSd, (char*)&msg, sizeof(msg), 0);
 
-        FD_ZERO( &set );
-        FD_SET( fileno( stdin ), &set );
-
-        int res = select( fileno( stdin )+1, &set, NULL, NULL, &tv );
-
-        if( res > 0 )
-        {
-            char c;
-
-		read( fileno( stdin ), &c, 1 );
-             switch(c)
-        	{
-            case 'W':
-            case 'w':
-		{
-		offboard->set_velocity_body({5.0f, 0.0f, 0.0f, 0.0f});
-                std::cout << "W was pressed \n";
-                break;
-		}
-            case 'A':
-            case 'a':
-		{
-                std::cout << "A was pressed \n";
-		offboard->set_velocity_body({0.0f, -5.0f, 0.0f, 0.0f});
-                break;
-		}
-            case 's':
-            case 'S':
-		{
-                std::cout << "S was pressed \n";
-		offboard->set_velocity_body({-5.0f, 0.0f, 0.0f, 0.0f});
-                break;
-		}
-            case 'D':
-            case 'd':
-		{
-                std::cout << "D was pressed \n";
-		offboard->set_velocity_body({0.0f, 5.0f, 0.0f, 0.0f});
-                break;
-		}
-	    case 'Q':
-            case 'q':
-		{
-                std::cout << "Q was pressed \n";
-		offboard->set_velocity_body({0.0f, 0.0f, 5.0f, 0.0f});
-                break;
-		}
-	    case 'E':
-            case 'e':
-		{
-                std::cout << "E was pressed \n";
-		offboard->set_velocity_body({0.0f, 0.0f, -5.0f, 0.0f});
-                break;
-		}
- 	    case 'T':
-            case 't':
-		{
-                std::cout << "T was pressed \n";
-		offboard->set_velocity_body({0.0f, 0.0f, 0.0f, 45.0f});
-                break;
-		}
-	    case 'R':
-            case 'r':
-		{
-                std::cout << "R was pressed \n";
-		offboard->set_velocity_body({0.0f, 0.0f, 0.0f, -45.0f});
-                break;
-		}
-	    case 'P':
-            case 'p':
-                  std::cout << "P was pressed. Exiting... \n";
-		  should_exit = true;
-                  break;
-	    default:
-		std::cout << "Other input \n";
+	cout << "Client: " << msg << endl;
+	char * pch;
+    pch = strtok (msg," ,");
+	while (pch != NULL)
+	{
+		cout << "Client: " << pch << endl;
+		pch = strtok (NULL, " , ");
+	}		
 		
-        	}
-            
-	   // offboard->set_velocity_body({0.0f, 0.0f, 0.0f, 0.0f});
-        }
-        else if( res < 0 )
-        {
-            perror( "select error" );
-            break;
-        }
-        else
-        {
-		offboard->set_velocity_body({0.0f, 0.0f, 0.0f, 0.0f});
-            printf( "Select timeout\n" );
-        }
+     
     }
 
-    tcsetattr( fileno( stdin ), TCSANOW, &oldSettings );
+    
+    close(newSd);
+    close(serverSd);
+   
 
     sleep_for(seconds(2));
 
